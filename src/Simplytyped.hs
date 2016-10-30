@@ -21,7 +21,7 @@ conversion' :: [String] -> LamTerm -> Term
 conversion' b (LVar n)       = maybe (Free (Global n)) Bound (n `elemIndex` b)
 conversion' b (App t u)      = conversion' b t :@: conversion' b u
 conversion' b (Abs n t u)    = Lam t (conversion' (n:b) u)
-conversion' b (LamLet n t u) = Let (conversion' (n:b) t) (conversion' (n:b) u) -- cuando encuentro un let, bindeo el nombre de la variable
+conversion' b (LamLet n t u) = Let (conversion' b t) (conversion' (n:b) u) -- cuando encuentro un let, bindeo el nombre de la variable
                                                                                -- de la misma forma que con la abstracción 
 -----------------------
 --- eval
