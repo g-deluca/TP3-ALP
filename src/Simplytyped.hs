@@ -21,7 +21,7 @@ conversion' :: [String] -> LamTerm -> Term
 conversion' b (LVar n)          = maybe (Free (Global n)) Bound (n `elemIndex` b)
 conversion' b (App t u)         = conversion' b t :@: conversion' b u
 conversion' b (Abs n t u)       = Lam t (conversion' (n:b) u)
-conversion' b (LamLet n t u)    = Let (conversion' b t) (conversion' (n:b) u) -- cuando encuentro un let, bindeo el nombre de la variable
+conversion' b (LamLet n t u)    = Let (conversion' b t) (conversion' (n:b) u) 
 conversion' b (LamAs t tt)      = As (conversion' b t) tt
 conversion' b (LamUnit)         = TUnit
 conversion' b (LamPair t u)     = TPair (conversion' b t) (conversion' b u)
@@ -35,7 +35,7 @@ conversion' b (LamRec t1 t2 t3) = Rec (conversion' b t1) (conversion' b t2) (con
 --- eval
 -----------------------
 
-sub :: Int -> Term -> Term -> Term  -- esta funcion hace las sustituciones, ya estaba hecha
+sub :: Int -> Term -> Term -> Term 
 sub i t (Bound j) | i == j    = t
 sub _ _ (Bound j) | otherwise = Bound j
 sub _ _ (Free n)              = Free n
@@ -53,6 +53,10 @@ sub i t (Rec t1 t2 t3)        = Rec (sub i t t1) (sub i t t2) (sub i t t3)
 
 
 -- evaluador de términos
+{- Aclaración: todos los errores a continuación están para explicitar los términos
+ - atascados, sin embargo nunca serán matcheados porque el type checker se encargará
+ - de que los términos que lleguen no se atasquen. -}
+
 eval :: NameEnv Value Type -> Term -> Value
 eval _ (Bound _)                = error "variable ligada inesperada en eval"
 eval e (Free n)                 = fst $ fromJust $ lookup n e
@@ -70,8 +74,7 @@ eval e (Lam t u :@: w)          = case eval e w of
                     VSuc v     -> eval e (Lam t u :@: quote (VSuc v))
 eval e (u :@: v)                = case eval e u of
                     VLam t  u' -> eval e (Lam t u' :@: v)
-                    VUnit      -> error "Unit no puede ser aplicado"   
-                    VPair w w' -> error "Un par no puede ser aplicado"  
+                    _          -> error "El término recibido no puede ser aplicado (no es función)"   
 eval e (Let t u)                = case eval e t of
                     VLam t' u' -> eval e (sub 0 (Lam t' u') u) 
                     VUnit      -> eval e (sub 0 TUnit u) 
@@ -99,7 +102,7 @@ eval e (Suc t)                  = VSuc (eval e t)
 eval e (Rec t1 t2 t3)           = case eval e t3 of
                    VZero       -> eval e t1
                    VSuc t      -> eval e (t2 :@:  Rec t1 t2 (quote t) :@:  quote t)
-                    
+                   _           -> error "El tercer argumento no es un natural" 
 
 -----------------------
 --- quoting
@@ -164,9 +167,7 @@ infer' c e (t :@: u) = infer' c e t >>= \tt ->
                          _         -> notfunError tt
 infer' c e (Lam t u) = infer' (t:c) e u >>= \tu ->
                        ret $ Fun t tu
-infer' c e (Let t u) = infer' c e t >>= \tt -> infer' (tt:c) e u  -- primero infiero el tipo de t: si falla el error se propaga
-                                                                  -- si me devuelve un tipo, infiero el tipo de u agregando tt 
-                                                                  -- (o sea el tipo de t) al contexto
+infer' c e (Let t u) = infer' c e t >>= \tt -> infer' (tt:c) e u 
 infer' c e (As t tt) = infer' c e t >>= \tt' -> if tt==tt' then ret tt else matchError tt tt'                        
 infer' c e TUnit = ret Unit
 infer' c e (TPair t u) = infer' c e t >>= \tt -> 

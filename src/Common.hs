@@ -31,7 +31,7 @@ module Common where
   data LamTerm  =  LVar String
                 |  Abs String Type LamTerm
                 |  App LamTerm LamTerm
-                |  LamLet String LamTerm LamTerm   -- ete ta bien :)
+                |  LamLet String LamTerm LamTerm 
                 |  LamAs LamTerm Type
                 |  LamUnit
                 |  LamPair LamTerm LamTerm
@@ -48,8 +48,7 @@ module Common where
              | Free Name 
              | Term :@: Term
              | Lam Type Term
-             | Let Term Term  -- "pierdo" la información del nombre de la variable a sustituir,
-                              -- porque en el eval lo reemplazo por un numerito, como con las abstraccciones
+             | Let Term Term
              | As Term Type
              | TUnit 
              | TPair Term Term
