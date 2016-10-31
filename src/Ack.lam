@@ -1,0 +1,2 @@
+def Boston = \r:Nat->Nat.\x:Nat. R (r (suc 0)) (\t:Nat.\j:Nat. r t) x
+def Ack = \m:Nat.\n:Nat. (R (\x:Nat.suc x) (\r:Nat->Nat.\i:Nat.Boston r) m) n

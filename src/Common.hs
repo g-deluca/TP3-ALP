@@ -19,8 +19,11 @@ module Common where
   type NameEnv v t = [(Name, (v, t))]
 
   -- Tipo de los tipos
-  data Type = Base 
+  data Type = Base
+            | Unit
+            | Nat 
             | Fun Type Type
+            | Pair Type Type
 
             deriving (Show, Eq)
   
@@ -29,6 +32,14 @@ module Common where
                 |  Abs String Type LamTerm
                 |  App LamTerm LamTerm
                 |  LamLet String LamTerm LamTerm   -- ete ta bien :)
+                |  LamAs LamTerm Type
+                |  LamUnit
+                |  LamPair LamTerm LamTerm
+                |  LamFst LamTerm
+                |  LamSnd LamTerm
+                |  LamZero
+                |  LamSuc LamTerm
+                |  LamRec LamTerm LamTerm LamTerm
                 deriving (Show, Eq)
 
 
@@ -39,12 +50,22 @@ module Common where
              | Lam Type Term
              | Let Term Term  -- "pierdo" la información del nombre de la variable a sustituir,
                               -- porque en el eval lo reemplazo por un numerito, como con las abstraccciones
+             | As Term Type
+             | TUnit 
+             | TPair Term Term
+             | Fst Term
+             | Snd Term
+             | Zero
+             | Suc Term
+             | Rec Term Term Term
           deriving (Show, Eq)
 
   -- Valores
   data Value = VLam Type Term 
              | VUnit 
-
+             | VPair Value Value
+             | VZero
+             | VSuc Value
 
   -- Contextos del tipado
   type Context = [Type]
